@@ -1,20 +1,23 @@
 const express = require('express');
-const users = require('../expense-report/models/users');
 const myParser = require('body-parser');
-const users = require('./models/users');
-const products = require('./models/products');
+const Products = require('./models/products');
 var app = express();
+const db = require('./conection');
+const User = require('./models/users');
+
 const session = require('express-session');
 app.use(session({secret: 'test'}))
 
+
+app.listen(3000);
+
 app.use(myParser.urlencoded({extended: true}));
 
+app.get('/', (req, res) =>{
+    res.send("Hello World 123");
+})
 
-
-var u1 = new users.create('admin', 'admin', 'admin@yahoo.com', '0000', '078/231221', 'macedonia', '15.10.1988');
-console.log(u1);
-
-app.post('/register', (req, res) => {
+app.post('/register', (req, res, next) => {
     var firstname = req.body.firstname;
     var lastname = req.body.lastname;
     var email = req.body.email;
@@ -23,8 +26,30 @@ app.post('/register', (req, res) => {
     var country = req.body.country;
     var birthdate = req.body.birthdate;
 
-    var newUser = new users.create(firstname, lastname, email, password, telephone, country, birthdate);
+    let user = new User({
+        firstName: firstname,
+        lastName: lastname,
+        email: email,
+        password: password,
+        telephone: telephone,
+        country: country,
+        birthdate: birthdate
+
+    }) 
     
+    
+    user.save(function(err){
+        if(err) {
+            
+            return next(err);
+        }
+        else {
+            res.send('User Created!');
+        }
+        
+    });
+
+
 });
 
 app.post('/login', (req, res) => {
@@ -56,4 +81,25 @@ app.post('/addProduct', (req, res) =>{
     else{
         res.status(400).send('Access denied');
     }
+})
+
+
+app.post('/newProduct', (req, res) =>{
+    var pn = req.body.productname;
+    var pd = req.body.productdescription;
+    var pt = req.body.producttype;
+    var pdate = req.body.purchasedate;
+    var pp = req.body.productprice;
+
+
+
+})
+
+app.get('/products', (req, res, next) => {
+    Products.find({}, function(err, products){
+        if(err){
+            return next(err);
+        } 
+        res.send(products);
+    })
 })
